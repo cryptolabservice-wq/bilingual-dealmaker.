@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bilingual Deal Maker — Generador de Presupuestos y Contratos ES/EN</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- html2pdf.js CDN para generación local de PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    #signature-pad { touch-action: none; cursor: crosshair; }
+    @media print {
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Barra superior -->
+  <header class="bg-slate-900 text-white px-6 py-4 shadow-md flex flex-wrap items-center justify-between gap-4 no-print">
+    <div>
+      <h1 class="text-lg font-bold tracking-tight flex items-center gap-2">
+        <span class="bg-indigo-500 text-white text-xs px-2 py-0.5 rounded font-semibold">ES / EN</span>
+        Bilingual Deal Maker
+      </h1>
+      <p class="text-xs text-slate-400">Generador privado de presupuestos y contratos bilingües (100% en tu navegador)</p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button id="credits-badge" onclick="openPaywall()" class="text-xs bg-slate-800 border border-slate-700 hover:border-indigo-400 px-3 py-1.5 rounded-full text-emerald-400 font-medium transition cursor-pointer">
+        Descargas gratis restantes: 2/2
+      </button>
+      <button onclick="downloadPDF()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow transition flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Descargar PDF
+      </button>
+    </div>
+  </header>
+
+  <!-- Contenedor principal dividido -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- PANEL IZQUIERDO: FORMULARIO -->
+    <section class="lg:col-span-5 bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-5 h-fit no-print">
+      <div class="border-b border-slate-100 pb-3">
+        <h2 class="font-bold text-slate-800 text-base">1. Datos del Acuerdo / Deal Details</h2>
+        <p class="text-xs text-slate-500">Rellena los datos una vez. El documento se actualizará en ambos idiomas.</p>
+      </div>
+
+      <!-- Plantilla de Nicho -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Tipo de Servicio (Plantilla Legal)</label>
+        <select id="niche-select" onchange="applyNicheTemplate()" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <option value="design">Diseño Gráfico y Branding / Graphic Design</option>
+          <option value="web">Desarrollo Web y Software / Web Development</option>
+          <option value="video">Edición de Vídeo y Contenido / Video Production</option>
+        </select>
+      </div>
+
+      <!-- Logo -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Tu Logotipo (Opcional - Procesado localmente)</label>
+        <input type="file" id="logo-input" accept="image/*" onchange="handleLogoUpload(event)" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+      </div>
+
+      <!-- Emisor y Cliente -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Tu Nombre / Estudio</label>
+          <input type="text" id="provider-name" value="Minimal Logos Studio" oninput="updatePreview()" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-1.5" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Tu Email / ID Fiscal</label>
+          <input type="text" id="provider-email" value="hello@studio.com" oninput="updatePreview()" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-1.5" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre del Cliente</label>
+          <input type="text" id="client-name" value="Acme Global Corp." oninput="updatePreview()" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-1.5" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Email / Empresa Cliente</label>
+          <input type="text" id="client-email" value="contact@acmecorp.com" oninput="updatePreview()" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-1.5" />
+        </div>
+      </div>
+
+      <!-- Proyecto y Precio -->
+      <div class="grid grid-cols-3 gap-3">
+        <div class="col-span-2">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Título del Proyecto</label>
+          <input type="text" id="project-title" value="Identidad Visual y Logotipo / Brand Identity" oninput="updatePreview()" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-1.5" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Moneda</label>
+          <select id="currency" onchange="updatePreview()" class="w-full text-sm border border-slate-300 rounded-lg px-2 py-1.5">
+            <option value="$">USD ($)</option>
+            <option value="€">EUR (€)</option>
+            <option value="£">GBP (£)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Importe Total</label>
+          <input type="number" id="total-amount" value="650" oninput="updatePreview()" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-1.5" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Anticipo (%)</label>
+          <input type="number" id="deposit-pct" value="50" min="0" max="100" oninput="updatePreview()" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-1.5" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Entrega (Días)</label>
+          <input type="number" id="delivery-days" value="10" min="1" oninput="updatePreview()" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-1.5" />
+        </div>
+      </div>
+
+      <!-- Descripción bilingüe -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Entregables (Español)</label>
+        <textarea id="scope-es" rows="2" oninput="updatePreview()" class="w-full text-xs border border-slate-300 rounded-lg p-2">Diseño de logotipo principal, 2 propuestas creativas, manual básico de marca y archivos vectoriales finales (SVG, PDF, PNG).</textarea>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Deliverables (English)</label>
+        <textarea id="scope-en" rows="2" oninput="updatePreview()" class="w-full text-xs border border-slate-300 rounded-lg p-2">Primary logo design, 2 creative concepts, basic brand guidelines, and final vector source files (SVG, PDF, PNG).</textarea>
+      </div>
+
+      <!-- Firma Digital -->
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <label class="text-xs font-semibold text-slate-700">Firma del Proveedor (Dibuja abajo)</label>
+          <button type="button" onclick="clearSignature()" class="text-xs text-rose-600 hover:underline">Borrar firma</button>
+        </div>
+        <canvas id="signature-pad" width="360" height="90" class="w-full border border-dashed border-slate-300 rounded-lg bg-slate-50"></canvas>
+      </div>
+    </section>
+
+    <!-- PANEL DERECHO: VISTA PREVIA DEL DOCUMENTO PDF -->
+    <section class="lg:col-span-7">
+      <div id="document-preview" class="bg-white shadow-lg border border-slate-200 rounded-sm p-8 mx-auto max-w-[820px] text-slate-800">
+        
+        <!-- Cabecera Documento -->
+        <div class="flex justify-between items-start border-b-2 border-slate-800 pb-5 mb-6">
+          <div class="flex items-center gap-3">
+            <img id="preview-logo" src="" alt="Logo" class="h-12 w-auto object-contain hidden" />
+            <div>
+              <h2 id="prev-provider-name" class="font-bold text-lg text-slate-900">Minimal Logos Studio</h2>
+              <p id="prev-provider-email" class="text-xs text-slate-500">hello@studio.com</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="inline-block bg-slate-900 text-white text-[10px] uppercase tracking-widest px-2.5 py-1 font-semibold mb-1">
+              Presupuesto & Contrato / Quote & Agreement
+            </span>
+            <p class="text-xs text-slate-500">Fecha / Date: <span id="prev-date"></span></p>
+          </div>
+        </div>
+
+        <!-- Datos de las Partes -->
+        <div class="grid grid-cols-2 gap-6 bg-slate-50 p-4 rounded border border-slate-200 mb-6 text-xs">
+          <div>
+            <p class="font-bold text-slate-500 uppercase text-[10px] mb-1">Prestador / Service Provider</p>
+            <p id="prev-provider-box" class="font-semibold text-slate-900">Minimal Logos Studio</p>
+            <p id="prev-provider-email-box" class="text-slate-600">hello@studio.com</p>
+          </div>
+          <div>
+            <p class="font-bold text-slate-500 uppercase text-[10px] mb-1">Cliente / Client</p>
+            <p id="prev-client-box" class="font-semibold text-slate-900">Acme Global Corp.</p>
+            <p id="prev-client-email-box" class="text-slate-600">contact@acmecorp.com</p>
+          </div>
+        </div>
+
+        <!-- Resumen Económico -->
+        <div class="mb-6">
+          <h3 id="prev-project-title" class="font-bold text-sm text-slate-900 mb-2">Identidad Visual y Logotipo / Brand Identity</h3>
+          <table class="w-full text-xs border-collapse border border-slate-300">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700">
+                <th class="border border-slate-300 p-2 text-left">Concepto / Description</th>
+                <th class="border border-slate-300 p-2 text-center">Plazo / Timeline</th>
+                <th class="border border-slate-300 p-2 text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="border border-slate-300 p-2">Servicios profesionales según alcance adjunto / Professional services per scope</td>
+                <td id="prev-timeline" class="border border-slate-300 p-2 text-center">10 días / days</td>
+                <td id="prev-total" class="border border-slate-300 p-2 text-right font-bold">$650.00</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- COLUMNAS BILINGÜES (ESPAÑOL / INGLÉS) -->
+        <div class="grid grid-cols-2 gap-6 text-[11px] leading-relaxed border-t border-slate-200 pt-5">
+          
+          <!-- COLUMNA ESPAÑOL -->
+          <div class="space-y-3 pr-2 border-r border-slate-200">
+            <h4 class="font-bold text-xs uppercase text-indigo-700 tracking-wide">Términos y Condiciones (Español)</h4>
+            
+            <div>
+              <p class="font-bold text-slate-900">1. Alcance del Servicio:</p>
+              <p id="prev-scope-es" class="text-slate-600">Diseño de logotipo principal, 2 propuestas creativas, manual básico de marca y archivos vectoriales finales (SVG, PDF, PNG).</p>
+            </div>
+
+            <div>
+              <p class="font-bold text-slate-900">2. Forma de Pago:</p>
+              <p id="prev-payment-es" class="text-slate-600">Se abonará un anticipo del 50% ($325.00) al aceptar este documento y el 50% restante ($325.00) antes de la entrega de los archivos finales.</p>
+            </div>
+
+            <div>
+              <p class="font-bold text-slate-900">3. Revisiones y Propiedad Intelectual:</p>
+              <p id="prev-legal-es" class="text-slate-600">Incluye hasta 2 rondas de revisión. Los derechos de uso comercial se transfieren al Cliente una vez liquidado el 100% del importe acordado.</p>
+            </div>
+          </div>
+
+          <!-- COLUMNA INGLÉS -->
+          <div class="space-y-3 pl-1">
+            <h4 class="font-bold text-xs uppercase text-indigo-700 tracking-wide">Terms & Conditions (English)</h4>
+            
+            <div>
+              <p class="font-bold text-slate-900">1. Scope of Services:</p>
+              <p id="prev-scope-en" class="text-slate-600">Primary logo design, 2 creative concepts, basic brand guidelines, and final vector source files (SVG, PDF, PNG).</p>
+            </div>
+
+            <div>
+              <p class="font-bold text-slate-900">2. Payment Terms:</p>
+              <p id="prev-payment-en" class="text-slate-600">A 50% deposit ($325.00) is due upon acceptance, with the remaining 50% ($325.00) payable prior to final file delivery.</p>
+            </div>
+
+            <div>
+              <p class="font-bold text-slate-900">3. Revisions & Intellectual Property:</p>
+              <p id="prev-legal-en" class="text-slate-600">Includes up to 2 rounds of revisions. Full commercial ownership rights transfer to the Client upon receipt of 100% of the agreed fee.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bloque de Firmas -->
+        <div class="grid grid-cols-2 gap-8 mt-8 pt-6 border-t border-slate-300 text-xs">
+          <div>
+            <p class="text-[10px] text-slate-500 uppercase font-semibold mb-2">Firma del Prestador / Provider Signature</p>
+            <div class="h-16 border-b border-slate-400 flex items-end pb-1">
+              <img id="prev-signature-img" src="" alt="" class="max-h-14 hidden" />
+            </div>
+            <p id="prev-sign-provider" class="mt-1 font-medium text-slate-700">Minimal Logos Studio</p>
+          </div>
+          <div>
+            <p class="text-[10px] text-slate-500 uppercase font-semibold mb-2">Aceptación del Cliente / Client Acceptance</p>
+            <div class="h-16 border-b border-slate-400"></div>
+            <p id="prev-sign-client" class="mt-1 font-medium text-slate-700">Acme Global Corp.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL DE PAGO CON VERIFICACIÓN DE CÓDIGO DE LICENCIA -->
+  <div id="paywall-modal" class="fixed inset-0 bg-slate-900/75 hidden items-center justify-center p-4 z-50 no-print">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl text-center space-y-4">
+      <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto font-bold text-xl">
+        ★
+      </div>
+      <h3 class="text-xl font-bold text-slate-900">Desbloquea el Plan PRO Ilimitado</h3>
+      <p class="text-xs text-slate-600">
+        Has usado tus 2 descargas gratuitas. Obtén descargas ilimitadas de por vida con un <strong>pago único de $12 USD</strong> (sin suscripciones).
+      </p>
+      
+      <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs text-left space-y-1 text-slate-700">
+        <p>✓ Generación ilimitada de PDFs bilingües ES/EN</p>
+        <p>✓ Logotipo y firma digital personalizada</p>
+        <p>✓ 100% privado en tu navegador</p>
+      </div>
+
+      <!-- PASO 1: BOTÓN DE PAGO PAYPAL (camillefortuna2036@gmail.com) -->
+      <div class="text-left space-y-1.5">
+        <p class="text-[11px] font-bold text-slate-700 uppercase">Paso 1: Realiza el pago único</p>
+        <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=camillefortuna2036%40gmail.com&item_name=Bilingual+Deal+Maker+PRO+Lifetime&amount=12.00&currency_code=USD" target="_blank" rel="noopener noreferrer" class="block w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-2.5 rounded-xl shadow transition">
+          Pagar $12 USD con PayPal →
+        </a>
+      </div>
+
+      <!-- PASO 2: ACTIVACIÓN POR CLAVE -->
+      <div class="text-left space-y-1.5 pt-2 border-t border-slate-100">
+        <p class="text-[11px] font-bold text-slate-700 uppercase">Paso 2: Introduce tu código de licencia</p>
+        <div class="flex gap-2">
+          <input type="text" id="license-input" placeholder="Ej: PRO-XXXX-XXXX" class="flex-1 text-xs border border-slate-300 rounded-lg px-3 py-2 uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          <button type="button" onclick="verifyLicense()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition">
+            Activar
+          </button>
+        </div>
+        <p id="license-error" class="text-[11px] text-rose-600 hidden">Código no válido. Verifica tu correo tras pagar.</p>
+        <p class="text-[10px] text-slate-400">Tras completar el pago en PayPal, recibirás tu clave de activación en tu correo electrónico.</p>
+      </div>
+
+      <button onclick="closePaywall()" class="text-xs text-slate-400 hover:text-slate-600 pt-1">
+        Cerrar ventana
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // CLAVE MAESTRA DE LICENCIA (Cámbiala cuando quieras)
+    const VALID_LICENSE_KEY = "PRO-BDM-2026";
+
+    // Fecha actual
+    document.getElementById('prev-date').textContent = new Date().toLocaleDateString();
+
+    // Plantillas predefinidas por nicho
+    const templates = {
+      design: {
+        title: "Identidad Visual y Logotipo / Brand Identity",
+        es: "Diseño de logotipo principal, 2 propuestas creativas, manual básico de marca y archivos vectoriales finales (SVG, PDF, PNG).",
+        en: "Primary logo design, 2 creative concepts, basic brand guidelines, and final vector source files (SVG, PDF, PNG).",
+        legalEs: "Incluye hasta 2 rondas de revisión. Los derechos de uso comercial se transfieren al Cliente una vez liquidado el 100% del importe acordado.",
+        legalEn: "Includes up to 2 rounds of revisions. Full commercial ownership rights transfer to the Client upon receipt of 100% of the agreed fee."
+      },
+      web: {
+        title: "Desarrollo Web a Medida / Custom Web Development",
+        es: "Diseño y desarrollo de sitio web responsivo, optimización básica SEO, configuración de dominio y despliegue en producción.",
+        en: "Responsive website design and development, basic SEO optimization, domain setup, and production deployment.",
+        legalEs: "Incluye 15 días de garantía por errores técnicos tras la entrega. El código fuente pasa a ser propiedad del Cliente tras el pago final.",
+        legalEn: "Includes 15 days of bug-fix warranty after delivery. Full source code ownership transfers to the Client upon final payment."
+      },
+      video: {
+        title: "Edición de Vídeo Promocional / Promotional Video Editing",
+        es: "Edición profesional, corrección de color, mezcla de audio, subtítulos sincronizados y exportación en Full HD/4K.",
+        en: "Professional video editing, color grading, audio mixing, synchronized captions, and Full HD/4K final export.",
+        legalEs: "Incluye 2 rondas de ajustes de corte o subtítulos. Los archivos editables originales no están incluidos salvo acuerdo previo.",
+        legalEn: "Includes 2 rounds of cut or caption revisions. Raw project files are not included unless otherwise agreed in writing."
+      }
+    };
+
+    function applyNicheTemplate() {
+      const niche = document.getElementById('niche-select').value;
+      const tpl = templates[niche];
+      document.getElementById('project-title').value = tpl.title;
+      document.getElementById('scope-es').value = tpl.es;
+      document.getElementById('scope-en').value = tpl.en;
+      document.getElementById('prev-legal-es').textContent = tpl.legalEs;
+      document.getElementById('prev-legal-en').textContent = tpl.legalEn;
+      updatePreview();
+    }
+
+    function updatePreview() {
+      const providerName = document.getElementById('provider-name').value;
+      const providerEmail = document.getElementById('provider-email').value;
+      const clientName = document.getElementById('client-name').value;
+      const clientEmail = document.getElementById('client-email').value;
+      const projectTitle = document.getElementById('project-title').value;
+      const currency = document.getElementById('currency').value;
+      const total = parseFloat(document.getElementById('total-amount').value) || 0;
+      const depositPct = parseFloat(document.getElementById('deposit-pct').value) || 0;
+      const days = document.getElementById('delivery-days').value || 1;
+
+      const depositAmt = ((total * depositPct) / 100).toFixed(2);
+      const balanceAmt = (total - depositAmt).toFixed(2);
+      const balancePct = 100 - depositPct;
+
+      document.getElementById('prev-provider-name').textContent = providerName;
+      document.getElementById('prev-provider-email').textContent = providerEmail;
+      document.getElementById('prev-provider-box').textContent = providerName;
+      document.getElementById('prev-provider-email-box').textContent = providerEmail;
+      document.getElementById('prev-sign-provider').textContent = providerName;
+
+      document.getElementById('prev-client-box').textContent = clientName;
+      document.getElementById('prev-client-email-box').textContent = clientEmail;
+      document.getElementById('prev-sign-client').textContent = clientName;
+
+      document.getElementById('prev-project-title').textContent = projectTitle;
+      document.getElementById('prev-timeline').textContent = `${days} días / days`;
+      document.getElementById('prev-total').textContent = `${currency}${total.toFixed(2)}`;
+
+      document.getElementById('prev-scope-es').textContent = document.getElementById('scope-es').value;
+      document.getElementById('prev-scope-en').textContent = document.getElementById('scope-en').value;
+
+      document.getElementById('prev-payment-es').textContent =
+        `Se abonará un anticipo del ${depositPct}% (${currency}${depositAmt}) al aceptar este documento y el ${balancePct}% restante (${currency}${balanceAmt}) antes de la entrega de los archivos finales.`;
+
+      document.getElementById('prev-payment-en').textContent =
+        `A ${depositPct}% deposit (${currency}${depositAmt}) is due upon acceptance, with the remaining ${balancePct}% (${currency}${balanceAmt}) payable prior to final file delivery.`;
+    }
+
+    // Subida de logotipo local
+    function handleLogoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = document.getElementById('preview-logo');
+        img.src = e.target.result;
+        img.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Pad de firma en Canvas
+    const canvas = document.getElementById('signature-pad');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#0f172a';
+
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: (clientX - rect.left) * (canvas.width / rect.width),
+        y: (clientY - rect.top) * (canvas.height / rect.height)
+      };
+    }
+
+    function startDraw(e) {
+      drawing = true;
+      const pos = getPos(e);
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+    }
+
+    function draw(e) {
+      if (!drawing) return;
+      e.preventDefault();
+      const pos = getPos(e);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      syncSignature();
+    }
+
+    function endDraw() {
+      drawing = false;
+    }
+
+    function syncSignature() {
+      const sigImg = document.getElementById('prev-signature-img');
+      sigImg.src = canvas.toDataURL();
+      sigImg.classList.remove('hidden');
+    }
+
+    function clearSignature() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const sigImg = document.getElementById('prev-signature-img');
+      sigImg.classList.add('hidden');
+      sigImg.src = '';
+    }
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    window.addEventListener('mouseup', endDraw);
+    canvas.addEventListener('touchstart', startDraw);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', endDraw);
+
+    // Control de descargas gratuitas y Licencias (Freemium)
+    const MAX_FREE = 2;
+    function getDownloads() {
+      return parseInt(localStorage.getItem('bdm_downloads') || '0', 10);
+    }
+    function isPro() {
+      return localStorage.getItem('bdm_pro') === 'true';
+    }
+    function updateCreditsUI() {
+      const badge = document.getElementById('credits-badge');
+      if (isPro()) {
+        badge.textContent = 'Plan PRO Ilimitado Activo ★';
+        badge.className = 'text-xs bg-indigo-900 border border-indigo-500 px-3 py-1.5 rounded-full text-indigo-200 font-semibold';
+      } else {
+        const left = Math.max(0, MAX_FREE - getDownloads());
+        badge.textContent = `Descargas gratis restantes: ${left}/${MAX_FREE}`;
+      }
+    }
+
+    function downloadPDF() {
+      const used = getDownloads();
+      if (!isPro() && used >= MAX_FREE) {
+        openPaywall();
+        return;
+      }
+
+      const element = document.getElementById('document-preview');
+      const opt = {
+        margin: 0.3,
+        filename: 'Contrato_Presupuesto_Bilingue.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save().then(() => {
+        if (!isPro()) {
+          localStorage.setItem('bdm_downloads', (used + 1).toString());
+          updateCreditsUI();
+        }
+      });
+    }
+
+    function openPaywall() {
+      if (isPro()) return;
+      document.getElementById('license-error').classList.add('hidden');
+      document.getElementById('paywall-modal').classList.remove('hidden');
+      document.getElementById('paywall-modal').classList.add('flex');
+    }
+
+    function closePaywall() {
+      document.getElementById('paywall-modal').classList.add('hidden');
+      document.getElementById('paywall-modal').classList.remove('flex');
+    }
+
+    function verifyLicense() {
+      const inputVal = document.getElementById('license-input').value.trim().toUpperCase();
+      const errorMsg = document.getElementById('license-error');
+
+      if (inputVal === VALID_LICENSE_KEY) {
+        localStorage.setItem('bdm_pro', 'true');
+        errorMsg.classList.add('hidden');
+        updateCreditsUI();
+        closePaywall();
+        alert('¡Licencia activada con éxito! Ya tienes descargas ilimitadas.');
+      } else {
+        errorMsg.classList.remove('hidden');
+      }
+    }
+
+    // Desbloqueo automático si el usuario vuelve desde PayPal con ?key=PRO-BDM-2026 en la URL
+    function checkUrlLicense() {
+      const params = new URLSearchParams(window.location.search);
+      const urlKey = (params.get('key') || '').trim().toUpperCase();
+      if (urlKey === VALID_LICENSE_KEY) {
+        localStorage.setItem('bdm_pro', 'true');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+
+    // Inicializar
+    checkUrlLicense();
+    updatePreview();
+    updateCreditsUI();
+  </script>
+</body>
+</html>
