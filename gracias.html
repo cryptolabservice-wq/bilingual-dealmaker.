@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gracias por tu compra — Bilingual Deal Maker PRO</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6fb;
+      color: #1e293b;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .card {
+      background: #ffffff;
+      max-width: 520px;
+      width: 100%;
+      padding: 32px;
+      border-radius: 14px;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      background: #e0e7ff;
+      color: #3730a3;
+      font-weight: bold;
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: 24px;
+    }
+    p {
+      line-height: 1.5;
+      color: #475569;
+    }
+    .key-box {
+      background: #f1f5f9;
+      border: 2px dashed #6366f1;
+      border-radius: 10px;
+      padding: 16px;
+      margin: 22px 0;
+      font-size: 22px;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+      color: #1e1b4b;
+    }
+    button {
+      background: #4f46e5;
+      color: #ffffff;
+      border: none;
+      padding: 11px 18px;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      margin: 6px;
+    }
+    button:hover {
+      background: #4338ca;
+    }
+    .btn-link {
+      display: inline-block;
+      margin-top: 14px;
+      background: #0f172a;
+      color: #ffffff;
+      text-decoration: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge">PAGO CONFIRMADO • PLAN PRO</div>
+    <h1>¡Gracias por tu compra! / Thank you!</h1>
+    <p>
+      Tu pago en PayPal se ha completado. Copia tu clave de licencia y pégala en el
+      <strong>Paso 2</strong> dentro de la aplicación para activar las descargas ilimitadas:
+    </p>
+
+    <div class="key-box" id="licenseKey">PRO-BDM-2026</div>
+    <button onclick="copyKey()">Copiar clave / Copy key</button>
+    <p id="copiedMsg" style="color: #16a34a; font-weight: bold; min-height: 22px;"></p>
+
+    <p style="font-size: 14px;">
+      1. Vuelve a <strong>Bilingual Deal Maker</strong>.<br />
+      2. Abre el modal PRO y pega <strong>PRO-BDM-2026</strong> en el Paso 2.<br />
+      3. Pulsa <strong>Activar</strong>.
+    </p>
+
+    <a class="btn-link" href="https://bilingual-dealmaker.vercel.app/">Volver a Bilingual Deal Maker</a>
+  </div>
+
+  <script>
+    function copyKey() {
+      const key = document.getElementById("licenseKey").innerText;
+      navigator.clipboard.writeText(key).then(() => {
+        document.getElementById("copiedMsg").innerText = "¡Clave copiada! / Key copied!";
+      });
+    }
+  </script>
+</body>
+</html>
